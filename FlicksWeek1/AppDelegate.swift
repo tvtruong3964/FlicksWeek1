@@ -7,17 +7,43 @@
 //
 
 import UIKit
+import AFNetworking
+import RMessage
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    var dataModel = DataModel()
+    let NetworkReachabilityChanged = NSNotification.Name("NetworkReachabilityChanged")
+    var previousNetworkReachabilityStatus: AFNetworkReachabilityStatus = .unknown
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        let tabBarController = window!.rootViewController as! UITabBarController
+        if let tabBarViewController = tabBarController.viewControllers {
+            
+           let nowPlayingNavigationController = tabBarViewController[0] as! UINavigationController
+            let nowPlayingController = nowPlayingNavigationController.viewControllers[0] as! NowPlayingTableViewController
+            nowPlayingController.dataModel = dataModel
+            
+            let topRatedNavigationController = tabBarViewController[1] as! UINavigationController
+            let topRateController = topRatedNavigationController.viewControllers[0] as! TopRatedTableViewController
+            topRateController.dataModel = dataModel
+
+            
+            
+        }
+//        let navigationController = window!.rootViewController as! UINavigationController
+//        let controller = navigationController.viewControllers[0] as! MoviesTableViewController
+//        controller.dataModel = dataModel
+//        RMessageView.appearance().alpha = 0.4
+//        RMessageView.appearance().backgroundColor = UIColor(red: 233/255, green: 82/255, blue: 84/255, alpha: 1)
+        
         return true
     }
+    
+    
+
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
