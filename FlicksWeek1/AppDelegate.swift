@@ -19,22 +19,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var previousNetworkReachabilityStatus: AFNetworkReachabilityStatus = .unknown
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        
         let tabBarController = window!.rootViewController as! UITabBarController
         if let tabBarViewController = tabBarController.viewControllers {
             
            let nowPlayingNavigationController = tabBarViewController[0] as! UINavigationController
-            let nowPlayingController = nowPlayingNavigationController.viewControllers[0] as! NowPlayingTableViewController
+            let nowPlayingController = nowPlayingNavigationController.viewControllers[0] as! NowPlayingMovieViewController
             nowPlayingController.dataModel = dataModel
-            
+        
             let topRatedNavigationController = tabBarViewController[1] as! UINavigationController
-            let topRateController = topRatedNavigationController.viewControllers[0] as! TopRatedTableViewController
+            let topRateController = topRatedNavigationController.viewControllers[0] as! TopRatedMovieViewController
             topRateController.dataModel = dataModel
+//
+//            
+//            let movieNavigationController = tabBarViewController[2] as! UINavigationController
+//            let movieController = movieNavigationController.viewControllers[0] as! MovieViewController
+//            movieController.dataModel = dataModel
 
             
             
         }
 //        let navigationController = window!.rootViewController as! UINavigationController
-//        let controller = navigationController.viewControllers[0] as! MoviesTableViewController
+//        let controller = navigationController.viewControllers[0] as! NowPlayingMovieViewController
 //        controller.dataModel = dataModel
 //        RMessageView.appearance().alpha = 0.4
 //        RMessageView.appearance().backgroundColor = UIColor(red: 233/255, green: 82/255, blue: 84/255, alpha: 1)
