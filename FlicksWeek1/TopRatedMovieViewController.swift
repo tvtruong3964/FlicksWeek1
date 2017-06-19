@@ -39,27 +39,37 @@ class TopRatedMovieViewController: UIViewController,  UITableViewDataSource, UIT
         colectionView.dataSource = self
         searchBar.delegate = self
         
-         searchBar.showsCancelButton = true
-    
+       //  searchBar.showsCancelButton = true
+        
+      //  searchBar.backgroundColor = UIColor.white
+        
+        tableView.backgroundColor = UIColor(red: 241/255, green: 178/255, blue: 68/255, alpha: 1)
+        
+        navigationController!.navigationBar.barTintColor = UIColor(red: 241/255, green: 178/255, blue: 68/255, alpha: 1)
         
        // colectionView!.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "ColectionCell")
         
         colectionView.isHidden = true
         
-        checkingTheNetwork()
+       // checkingTheNetwork()
         
         
         NotificationCenter.default.addObserver(forName: NetworkReachabilityChanged, object: nil, queue: nil, using: {
             (notification) in
+            if self.isViewLoaded && (self.view.window != nil) {
             if let userInfo = notification.userInfo {
-                if let messageTitle = userInfo["summary"] as? String, let reachabilityStatus = userInfo["reachabilityStatus"] as? String, let reachableStatus = userInfo["reachableStatus"] as? Bool {
-                    //                    if reachableStatus {
-                    //                        RMessage.showNotification(in: self, title: messageTitle, subtitle: reachabilityStatus, type: RMessageType.success, customTypeName: nil, callback: nil)
-                    //                        //self.loadData()
-                    //
-                    //                    } else {
-                    //                        RMessage.showNotification(in: self, title: messageTitle, subtitle: reachabilityStatus, type: RMessageType.error, customTypeName: nil, callback: nil)
-                    //                    }
+                
+                    if let messageTitle = userInfo["summary"] as? String, let reachabilityStatus = userInfo["reachabilityStatus"] as? String, let reachableStatus = userInfo["reachableStatus"] as? Bool {
+                        if RMessage.isNotificationActive() {
+                            RMessage.dismissActiveNotification()
+                        }
+                        if reachableStatus {
+                            RMessage.showNotification(in: self, title: messageTitle, subtitle: reachabilityStatus, type: RMessageType.success, customTypeName: nil, callback: nil)
+                            
+                        } else {
+                            RMessage.showNotification(in: self, title: messageTitle, subtitle: reachabilityStatus, type: RMessageType.error, customTypeName: nil, callback: nil)
+                        }
+                    }
                 }
             }
         })
@@ -129,37 +139,6 @@ class TopRatedMovieViewController: UIViewController,  UITableViewDataSource, UIT
             colectionView.isHidden = false
         }
     }
-    func checkingTheNetwork() {
-        AFNetworkReachabilityManager.shared().startMonitoring()
-        AFNetworkReachabilityManager.shared().setReachabilityStatusChange { (status) in
-            let reachabilityStatus = AFStringFromNetworkReachabilityStatus(status)
-            var networkSummary = ""
-            var reachableStatusBool = false
-            
-            switch (status) {
-            case .reachableViaWWAN, .reachableViaWiFi:
-                // Reachable.
-                networkSummary = "Connected to Network"
-                reachableStatusBool = true
-            default:
-                // Not reachable.
-                networkSummary = "Disconnected from Network"
-                reachableStatusBool = false
-            }
-            
-            // Any class which has observer for this notification will be able to report loss of network connection
-            // successfully.
-            
-            if (self.previousNetworkReachabilityStatus != .unknown && status != self.previousNetworkReachabilityStatus) {
-                NotificationCenter.default.post(name: self.NetworkReachabilityChanged, object: nil, userInfo: [
-                    "reachabilityStatus" : "Connection Status : \(reachabilityStatus)",
-                    "summary" : networkSummary,
-                    "reachableStatus" : reachableStatusBool
-                    ])
-            }
-            self.previousNetworkReachabilityStatus = status
-        }
-    }
     
     func loadDataWithRefreshControl(_ refreshControl: UIRefreshControl) {
         dataModel.fetchMovieWithRrefeshControll(refreshControl, url: urlTopRated) {
@@ -204,19 +183,82 @@ class TopRatedMovieViewController: UIViewController,  UITableViewDataSource, UIT
     
       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableCell", for: indexPath) as! MovieViewCell
+        cell.selectionStyle = .none
+        
         
         if searchActive {
             cell.title.text = filteredArray[indexPath.row].title
             cell.overview.text = filteredArray[indexPath.row].overview
-            cell.poster.setImageWith(URL(string: filteredArray[indexPath.row].linkPoser)!)
+            //cell.poster.setImageWith(URL(string: filteredArray[indexPath.row].linkPoser)!)
+            
+            let imageRequest = NSURLRequest(url: URL(string: "https://image.tmdb.org/t/p/w342\(filteredArray[indexPath.row].linkPoser)")!)
+            
+            cell.poster.setImageWith(
+                imageRequest as URLRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.poster.alpha = 0.0
+                        cell.poster.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            cell.poster.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.poster.image = image
+                    }
+            },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
+            })
+            
+            
         } else {
             cell.title.text = movies[indexPath.row].title
             cell.overview.text = movies[indexPath.row].overview
-            cell.poster.setImageWith(URL(string: movies[indexPath.row].linkPoser)!)
+            //cell.poster.setImageWith(URL(string: movies[indexPath.row].linkPoser)!)
+            
+            
+           // let imageRequest = NSURLRequest(url: URL(string: movies[indexPath.row].linkPoser)!)
+            
+            let imageRequest = NSURLRequest(url: URL(string: "https://image.tmdb.org/t/p/w342\(movies[indexPath.row].linkPoser)")!)
+            
+            cell.poster.setImageWith(
+                imageRequest as URLRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.poster.alpha = 0.0
+                        cell.poster.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            cell.poster.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.poster.image = image
+                    }
+            },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
+            })
         }
         
         
         return cell
+    }
+    
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if RMessage.isNotificationActive() {
+            RMessage.dismissActiveNotification()
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -225,14 +267,20 @@ class TopRatedMovieViewController: UIViewController,  UITableViewDataSource, UIT
         if segue.identifier == "segueTopRatedTable"  {
             if searchActive {
                 let index = tableView.indexPathForSelectedRow!.row
-                viewController.txtUrl = filteredArray[index].linkPoser
+                viewController.txtUrl = "https://image.tmdb.org/t/p/original\(filteredArray[index].linkPoser)"
+                viewController.txtLowUrl = "https://image.tmdb.org/t/p/w45\(filteredArray[index].linkPoser)"
                 viewController.txtTitle =  filteredArray[index].title
                 viewController.txtOverview = filteredArray[index].overview
+                viewController.txtDate = filteredArray[index].date
+                viewController.floatVote = filteredArray[index].vote
             } else {
                 let index = tableView.indexPathForSelectedRow!.row
-                viewController.txtUrl = movies[index].linkPoser
+                viewController.txtUrl = "https://image.tmdb.org/t/p/original\(movies[index].linkPoser)"
+                viewController.txtLowUrl = "https://image.tmdb.org/t/p/w45\(movies[index].linkPoser)"
                 viewController.txtTitle =  movies[index].title
                 viewController.txtOverview = movies[index].overview
+                viewController.txtDate = movies[index].date
+                viewController.floatVote = movies[index].vote
             }
             
         } else if segue.identifier == "segueTopRatedCollection" {
@@ -240,16 +288,22 @@ class TopRatedMovieViewController: UIViewController,  UITableViewDataSource, UIT
                 let cell = sender as! UICollectionViewCell
                 let indexPathColection = colectionView!.indexPath(for: cell)
                 let index = indexPathColection!.row
-                viewController.txtUrl = filteredArray[index].linkPoser
+                viewController.txtUrl = "https://image.tmdb.org/t/p/original\(filteredArray[index].linkPoser)"
+                viewController.txtLowUrl = "https://image.tmdb.org/t/p/w45\(filteredArray[index].linkPoser)"
                 viewController.txtTitle =  filteredArray[index].title
                 viewController.txtOverview = filteredArray[index].overview
+                viewController.txtDate = filteredArray[index].date
+                viewController.floatVote = filteredArray[index].vote
             } else {
                 let cell = sender as! UICollectionViewCell
                 let indexPathColection = colectionView!.indexPath(for: cell)
                 let index = indexPathColection!.row
-                viewController.txtUrl = movies[index].linkPoser
+                viewController.txtUrl = "https://image.tmdb.org/t/p/original\(movies[index].linkPoser)"
+                viewController.txtLowUrl = "https://image.tmdb.org/t/p/w45\(movies[index].linkPoser)"
                 viewController.txtTitle =  movies[index].title
                 viewController.txtOverview = movies[index].overview
+                viewController.txtDate = movies[index].date
+                viewController.floatVote = movies[index].vote
             }
             
         }
@@ -268,9 +322,64 @@ extension TopRatedMovieViewController: UICollectionViewDelegate, UICollectionVie
         let cell = colectionView.dequeueReusableCell(withReuseIdentifier: "MovieColectionCell1", for: indexPath)
             as! MovieCollectionViewCell
         if searchActive {
-            cell.posterColectionView.setImageWith(URL(string: filteredArray[indexPath.row].linkPoser)!)
+          //  cell.posterColectionView.setImageWith(URL(string: filteredArray[indexPath.row].linkPoser)!)
+            
+           // let imageRequest = NSURLRequest(url: URL(string: filteredArray[indexPath.row].linkPoser)!)
+            let imageRequest = NSURLRequest(url: URL(string: "https://image.tmdb.org/t/p/w342\(filteredArray[indexPath.row].linkPoser)")!)
+            
+            cell.posterColectionView.setImageWith(
+                imageRequest as URLRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.posterColectionView.alpha = 0.0
+                        cell.posterColectionView.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            cell.posterColectionView.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.posterColectionView.image = image
+                    }
+            },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
+            })
+            
+            
         } else {
-            cell.posterColectionView.setImageWith(URL(string: movies[indexPath.row].linkPoser)!)
+            //cell.posterColectionView.setImageWith(URL(string: movies[indexPath.row].linkPoser)!)
+            
+            
+           // let imageRequest = NSURLRequest(url: URL(string: movies[indexPath.row].linkPoser)!)
+            
+            let imageRequest = NSURLRequest(url: URL(string: "https://image.tmdb.org/t/p/w342\(movies[indexPath.row].linkPoser)")!)
+            
+            cell.posterColectionView.setImageWith(
+                imageRequest as URLRequest,
+                placeholderImage: nil,
+                success: { (imageRequest, imageResponse, image) -> Void in
+                    
+                    // imageResponse will be nil if the image is cached
+                    if imageResponse != nil {
+                        print("Image was NOT cached, fade in image")
+                        cell.posterColectionView.alpha = 0.0
+                        cell.posterColectionView.image = image
+                        UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                            cell.posterColectionView.alpha = 1.0
+                        })
+                    } else {
+                        print("Image was cached so just update the image")
+                        cell.posterColectionView.image = image
+                    }
+            },
+                failure: { (imageRequest, imageResponse, error) -> Void in
+                    // do something for the failure condition
+            })
+            
         }
         return cell
     }

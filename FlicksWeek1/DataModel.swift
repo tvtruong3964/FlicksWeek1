@@ -86,8 +86,9 @@ class DataModel {
                 let linkPoster = jsonObject["poster_path"] as? String
                 let vote = jsonObject["vote_average"] as? Float
                 let overview = jsonObject["overview"] as? String
+                let date = jsonObject["release_date"] as? String
                 
-                let movie = Movie(title: title!, linkPoser: linkPoster!, vote: vote!, overview: overview!)
+                let movie = Movie(title: title!, linkPoser: linkPoster!, vote: vote!, overview: overview!, date: date!)
                 movies.append(movie)
             }
         }

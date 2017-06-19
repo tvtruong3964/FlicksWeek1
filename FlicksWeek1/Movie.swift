@@ -12,11 +12,13 @@ class Movie {
     var linkPoser: String
     var vote: Float
     var overview: String
-    init(title: String, linkPoser: String, vote: Float, overview: String) {
+    var date: String
+    init(title: String, linkPoser: String, vote: Float, overview: String, date: String) {
         self.title = title
-        self.linkPoser = "https://image.tmdb.org/t/p/w342\(linkPoser)"
+        self.linkPoser = linkPoser
         self.vote = vote
         self.overview = overview
+        self.date = date
     }
     
 }

@@ -45,10 +45,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        RMessageView.appearance().alpha = 0.4
 //        RMessageView.appearance().backgroundColor = UIColor(red: 233/255, green: 82/255, blue: 84/255, alpha: 1)
         
+        setupNetworkMonitor()
+        
         return true
     }
     
+        func setupNetworkMonitor() {
+            AFNetworkReachabilityManager.shared().startMonitoring()
+            AFNetworkReachabilityManager.shared().setReachabilityStatusChange { (status) in
+                let reachabilityStatus = AFStringFromNetworkReachabilityStatus(status)
+                var networkSummary = ""
+                var reachableStatusBool = false
     
+                switch (status) {
+                case .reachableViaWWAN, .reachableViaWiFi:
+                    // Reachable.
+                    networkSummary = "Connected to Network"
+                    reachableStatusBool = true
+                default:
+                    // Not reachable.
+                    networkSummary = "Disconnected from Network"
+                    reachableStatusBool = false
+                }
+    
+                // Any class which has observer for this notification will be able to report loss of network connection
+                // successfully.
+    
+                if (self.previousNetworkReachabilityStatus != .unknown && status != self.previousNetworkReachabilityStatus) {
+                    NotificationCenter.default.post(name: self.NetworkReachabilityChanged, object: nil, userInfo: [
+                        "reachabilityStatus" : "Connection Status : \(reachabilityStatus)",
+                        "summary" : networkSummary,
+                        "reachableStatus" : reachableStatusBool
+                        ])
+                }
+                self.previousNetworkReachabilityStatus = status
+            }
+        }
+
 
 
     func applicationWillResignActive(_ application: UIApplication) {
